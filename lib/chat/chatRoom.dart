@@ -9,7 +9,7 @@ class ChatRoom extends StatefulWidget {
 }
 
 class _ChatRoomState extends State<ChatRoom> {
-  dynamic messages=[Chat(content: 'Hello',id: 1,type: 'receiver'),Chat(content: 'Hi',id: 2,type: 'sender')];
+  dynamic messages;
   TextEditingController textMessage = TextEditingController();
   dynamic data={};
   @override
@@ -46,14 +46,14 @@ class _ChatRoomState extends State<ChatRoom> {
                     return Container(
                       padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
                       child: Align(
-                        alignment: (messages[index].type == "receiver"?Alignment.topLeft:Alignment.topRight),
+                        alignment: (messages[index].get('idFrom') == data['id']?Alignment.topLeft:Alignment.topRight),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: (messages[index].type  == "receiver"?Colors.grey.shade200:Colors.blue[200]),
+                            color: (messages[index].get('idFrom')== data['id']?Colors.grey.shade200:Colors.blue[200]),
                           ),
                           padding: EdgeInsets.all(16),
-                          child: Text(messages[index].content, style: TextStyle(fontSize: 15),),
+                          child: Text(messages[index].get('content'), style: TextStyle(fontSize: 15),),
                         ),
                       ),
                     );

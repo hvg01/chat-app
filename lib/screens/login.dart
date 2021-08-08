@@ -43,7 +43,7 @@ class LoginScreenState extends State<LoginScreen> {
     isLoggedIn = await googleSignIn.isSignedIn();
     if (isLoggedIn && prefs?.getString('id') != null) {
 
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/home',arguments: prefs!.getString('id'));
     }
 
     this.setState(() {
@@ -100,9 +100,7 @@ class LoginScreenState extends State<LoginScreen> {
           isLoading = false;
         });
 
-        Navigator.pushReplacementNamed(context, '/home',arguments: {
-          'id':currentUser!.uid
-        });
+        Navigator.pushReplacementNamed(context, '/home',arguments: currentUser!.uid);
       } else {
         Fluttertoast.showToast(msg: "Sign in fail");
         this.setState(() {
