@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +25,22 @@ class _ContactsState extends State<Contacts> {
     id=id.isEmpty?ModalRoute.of(context)!.settings.arguments:id;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contacts'),
-        centerTitle: true,
+        backgroundColor: Colors.white,
+        flexibleSpace: SafeArea(
+          child: Container(
+
+              child: Center(
+                child: Text(
+                    'Co-passengers in your vicinity',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold
+                  ),
+                ) ,
+              )
+
+          ),
+        ),
       ),
       body: Container(
         child: StreamBuilder<QuerySnapshot>(
@@ -33,44 +49,56 @@ class _ContactsState extends State<Contacts> {
 
               if(snapshot.hasData){
                 listOfSnapshots=snapshot.data!.docs;
-                listOfSnapshots.remove(listOfSnapshots.where((element)=>element.get('id')==id?true:false));
                 return ListView.builder(
                     itemCount:listOfSnapshots.length,
                     itemBuilder: (context,index){
+                      print(listOfSnapshots[index].get('blocked'));
                       return Card(
                         shape:RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0)
                         ) ,
-                        child: ListTile(
-                          title: Center(
-                            child: Text(
+                        child:Padding(
+                          padding: EdgeInsets.all(20),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.account_circle_outlined,
+                              size: 60,
+                            ),
+                            title: Center(
+                              child: Text(
                                 listOfSnapshots[index].get('name'),
-                              style: TextStyle(
-                                fontSize: 20
+                                style: TextStyle(
+                                    fontSize: 25
+                                ),
                               ),
                             ),
-                          ),
-                          subtitle:  Center(
-                            child: Text(
-                              listOfSnapshots[index].get('aboutMe'),
-                              style: TextStyle(
-                                  fontSize: 10
+                            subtitle:  Center(
+                              child: Text(
+                                listOfSnapshots[index].get('aboutMe'),
+                                style: TextStyle(
+                                    fontSize: 15
+                                ),
                               ),
                             ),
-                          ),
-                          onTap: () async{
-                            SharedPreferences pref = await SharedPreferences.getInstance();
-                            List<dynamic> sortList= [pref.getString('id'),listOfSnapshots[index].id];
-                            sortList.sort();
-                            dynamic finalString=sortList[0]+sortList[1];
-                            Navigator.pushNamed(context, '/chatRoom',arguments: {
-                              'chatID':finalString,
-                              'id':pref.getString('id'),
-                              'peerID': listOfSnapshots[index].id
-                            });
-                          },
+                            onTap: () async{
+                              SharedPreferences pref = await SharedPreferences.getInstance();
+                              List<dynamic> sortList= [pref.getString('id'),listOfSnapshots[index].id];
+                              sortList.sort();
+                              dynamic finalString=sortList[0]+sortList[1];
+                              dynamic blockedByYou= pref.getString('blocked');
+                              Navigator.pushNamed(context, '/chatRoom',arguments: {
+                                'chatID':finalString,
+                                'id':pref.getString('id'),
+                                'peerID': listOfSnapshots[index].id,
+                                'name':listOfSnapshots[index].get('name'),
+                                'blocked':listOfSnapshots[index].get('blocked'),
+                                'blockedByYou': json.decode(blockedByYou),
+                                'blockedStatus':json.decode(blockedByYou).contains(listOfSnapshots[index].id)
+                              });
+                            },
 
-                        ) ,
+                          ) ,
+                        )
                       );
 
                     }

@@ -2,6 +2,9 @@ import 'package:chat_app/Firebase/firebaseFunction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
+
 import 'chatClass.dart';
 class ChatRoom extends StatefulWidget {
   @override
@@ -12,23 +15,108 @@ class _ChatRoomState extends State<ChatRoom> {
   dynamic messages;
   TextEditingController textMessage = TextEditingController();
   dynamic data={};
+  late bool blockedStatus;
+
+  blockMechanism(){
+    data['blockedByYou']=Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['peerID'], data['blocked'],context,blockedStatus);
+
+  }
+
   @override
   Widget build(BuildContext context) {
     data=data.isEmpty?ModalRoute.of(context)!.settings.arguments:data;
+    blockedStatus=data['blockedStatus'];
+    print(data);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat Room'),
-        centerTitle: true,
+        backgroundColor: Colors.white,
+        flexibleSpace: SafeArea(
+          child:  Container(
+            padding: EdgeInsets.only(right: 16),
+            child: Row(
+              children: <Widget>[
+                IconButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back,color: Colors.black,),
+                ),
+                SizedBox(width: 2,),
+                CircleAvatar(
+                  child: Icon(Icons.account_circle_outlined),
+                  maxRadius: 20,
+                ),
+                SizedBox(width: 12,),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(data['name'],style: TextStyle( fontSize: 16 ,fontWeight: FontWeight.w600),),
+
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FlatButton(
+              onPressed: ()async{
+
+                bool x= await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Are you sure you want to block this conversation ?'),
+                        content: Container(
+                          width: 100,
+                          height: 100,
+                        ),
+                        
+                        actions: [
+                          FlatButton(
+                              onPressed: (){
+
+                                blockMechanism();
+                                Navigator.pop(context,!blockedStatus);
+
+
+                              }, 
+                              child: Text('Yes')
+                          ),
+                          FlatButton(
+                              onPressed: (){
+                                Navigator.pop(context,blockedStatus);
+                              },
+                              child: Text('No'))
+                        ],
+
+
+
+                      );
+                    });
+                print(blockedStatus);
+                Provider.of<FireBaseFunction>(context,listen: false).getCurrentBlockedStatus(x);
+                blockedStatus=Provider.of<FireBaseFunction>(context,listen: false).getBlockedStatus;
+                print(blockedStatus);
+
+              },
+              child: blockedStatus==true?Icon(Icons.undo):Icon(Icons.block)
+          )
+        ],
       ),
+
       body: Stack(
     children: <Widget>[
-      Expanded(
+      Flexible(
           child: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('messages')
                 .doc(data['chatID'])
                 .collection(data['chatID'])
-                .orderBy('timestamp', descending: true)
+                .orderBy('timestamp', descending: false)
                 .snapshots(),
             builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
               if (!snapshot.hasData) {
@@ -100,8 +188,19 @@ class _ChatRoomState extends State<ChatRoom> {
             SizedBox(width: 15,),
             FloatingActionButton(
               onPressed: () async{
+                if(data['blocked'].contains(data['id'])){
+                  Fluttertoast.showToast(msg: "You have been blocked by this contact");
+                }
 
-                FireBaseFunction.onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
+                else if(data['blockedByYou'].contains(data['peerID'])){
+                  Fluttertoast.showToast(msg: "You have blocked this contact");
+                }
+
+                else{
+                  FireBaseFunction.onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
+                }
+
+
 
               },
               child: Icon(Icons.send,color: Colors.white,size: 18,),
