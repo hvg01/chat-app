@@ -53,6 +53,8 @@ class _ChatRoomState extends State<ChatRoom> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(data['name'],style: TextStyle( fontSize: 16 ,fontWeight: FontWeight.w600),),
+                      SizedBox(height: 5,),
+                      Text(data['aboutMe'])
 
                     ],
                   ),
@@ -134,14 +136,18 @@ class _ChatRoomState extends State<ChatRoom> {
                     return Container(
                       padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
                       child: Align(
-                        alignment: (messages[index].get('idFrom') == data['id']?Alignment.topLeft:Alignment.topRight),
+                        alignment: (messages[index].get('idFrom') == data['id']?Alignment.topRight:Alignment.topLeft),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: (messages[index].get('idFrom')== data['id']?Colors.grey.shade200:Colors.blue[200]),
+                            border: Border.all(color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)! ),
+
                           ),
                           padding: EdgeInsets.all(16),
-                          child: Text(messages[index].get('content'), style: TextStyle(fontSize: 15),),
+                          child: Text(messages[index].get('content'), style: TextStyle(
+                              fontSize: 15,
+                            color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)!
+                          ),),
                         ),
                       ),
                     );

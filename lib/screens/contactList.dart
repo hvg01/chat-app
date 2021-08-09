@@ -93,7 +93,8 @@ class _ContactsState extends State<Contacts> {
                                 'name':listOfSnapshots[index].get('name'),
                                 'blocked':listOfSnapshots[index].get('blocked'),
                                 'blockedByYou': json.decode(blockedByYou),
-                                'blockedStatus':json.decode(blockedByYou).contains(listOfSnapshots[index].id)
+                                'blockedStatus':json.decode(blockedByYou).contains(listOfSnapshots[index].id),
+                                'aboutMe': listOfSnapshots[index].get('aboutMe')
                               });
                             },
 
