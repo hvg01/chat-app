@@ -10,7 +10,7 @@ class FireBaseFunction extends ChangeNotifier{
   get getBlockedStatus{
     return blocked;
   }
-  static onSendMessage(String content,String id, String peerId , TextEditingController textEditingController, String groupChatId) {
+   onSendMessage(String content,String id, String peerId , TextEditingController textEditingController, String groupChatId) {
 
     if (content.trim() != '') {
       textEditingController.clear();

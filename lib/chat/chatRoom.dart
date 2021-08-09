@@ -203,7 +203,7 @@ class _ChatRoomState extends State<ChatRoom> {
                 }
 
                 else{
-                  FireBaseFunction.onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
+                  Provider.of<FireBaseFunction>(context).onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
                 }
 
 
