@@ -16,6 +16,7 @@ class _ChatRoomState extends State<ChatRoom> {
   TextEditingController textMessage = TextEditingController();
   dynamic data={};
   late bool blockedStatus;
+  Map<bool,Widget> widgetMap={true:Icon(Icons.block),false:Icon(Icons.undo)};
 
   blockMechanism(){
     data['blockedByYou']=Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['peerID'], data['blocked'],context,blockedStatus);
@@ -24,8 +25,9 @@ class _ChatRoomState extends State<ChatRoom> {
 
   @override
   Widget build(BuildContext context) {
+    blockedStatus=Provider.of<FireBaseFunction>(context).blocked;
     data=data.isEmpty?ModalRoute.of(context)!.settings.arguments:data;
-    blockedStatus=data['blockedStatus'];
+    //blockedStatus=data['blockedStatus'];
     print(data);
     return Scaffold(
       appBar: AppBar(
@@ -99,13 +101,14 @@ class _ChatRoomState extends State<ChatRoom> {
 
                       );
                     });
+                print(x);
                 print(blockedStatus);
                 Provider.of<FireBaseFunction>(context,listen: false).getCurrentBlockedStatus(x);
                 blockedStatus=Provider.of<FireBaseFunction>(context,listen: false).getBlockedStatus;
                 print(blockedStatus);
 
               },
-              child: blockedStatus==true?Icon(Icons.undo):Icon(Icons.block)
+              child: Icon(blockedStatus?Icons.undo:Icons.block)
           )
         ],
       ),

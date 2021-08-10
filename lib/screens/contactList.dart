@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:chat_app/Firebase/firebaseFunction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class Contacts extends StatefulWidget {
   @override
@@ -11,13 +13,43 @@ class Contacts extends StatefulWidget {
 
 class _ContactsState extends State<Contacts> {
   dynamic listOfSnapshots;
+  dynamic userMap;
   late dynamic id;
 
-  idTest(identity){
-    if(identity==id){
-      return false;
+  Widget widgetDecision(requestArray,acceptedArray,uid,BuildContext context,index){
+    if(requestArray.contains(uid)){
+      return Row(
+        children: [
+          FlatButton(
+              onPressed: (){
+
+              },
+              child: Icon(Icons.check)
+          ),
+          FlatButton(
+              onPressed: (){},
+              child: Icon(Icons.clear)
+          )
+
+        ],
+      );
     }
-    return true;
+
+    else if(acceptedArray.contains(uid)){
+      return Icon(Icons.check);
+    }
+
+    else if(userMap['requestSent'].contains(listOfSnapshots[index].get('id'))){
+      return Icon(Icons.send);
+    }
+
+    return FlatButton(
+      onPressed: (){
+        Provider.of<FireBaseFunction>(context,listen: false).sendRequest(userMap['requestSent'], uid);
+      },
+      child: Icon(Icons.add)
+    );
+
   }
   @override
   Widget build(BuildContext context) {
@@ -49,6 +81,15 @@ class _ContactsState extends State<Contacts> {
 
               if(snapshot.hasData){
                 listOfSnapshots=snapshot.data!.docs;
+                listOfSnapshots.forEach((element){
+                  print(element.get('id'));
+                  if(element.get('id')==id){
+                    userMap=element;
+                  }
+                });
+
+                listOfSnapshots.remove(userMap);
+
                 return ListView.builder(
                     itemCount:listOfSnapshots.length,
                     itemBuilder: (context,index){
@@ -64,6 +105,7 @@ class _ContactsState extends State<Contacts> {
                               Icons.account_circle_outlined,
                               size: 60,
                             ),
+                            trailing: widgetDecision(listOfSnapshots[index].get('requestSent'), listOfSnapshots[index].get('requestAccepted'), id, context,index),
                             title: Center(
                               child: Text(
                                 listOfSnapshots[index].get('name'),

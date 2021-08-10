@@ -80,7 +80,9 @@ class LoginScreenState extends State<LoginScreen> {
             'id': firebaseUser.uid,
             'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
             'chattingWith': null,
-            'blocked':[]
+            'blocked':[],
+            'requestSent':[],
+            'requestAccepted':[]
           });
 
           // Write data to local

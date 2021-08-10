@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FireBaseFunction extends ChangeNotifier{
-  late bool blocked;
+   bool blocked=false;
+   Widget widget=Container();
 
   get getBlockedStatus{
     return blocked;
@@ -54,5 +56,43 @@ class FireBaseFunction extends ChangeNotifier{
   getCurrentBlockedStatus(bool status){
     blocked=status;
     notifyListeners();
+  }
+
+  sendRequest(requestArray,uid){
+    requestArray.add(uid);
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
+  }
+
+  acceptRequest(acceptArray,uid){
+    acceptArray.add(uid);
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestAccepted':acceptArray });
+  }
+
+  widgetDecider(requestArray,acceptedArray,uid,BuildContext context,index,uMap,list){
+    if(requestArray.contains(uid)){
+      return Row(
+        children: [
+          FlatButton(
+              onPressed: (){
+
+              },
+              child: Icon(Icons.check)
+          ),
+          FlatButton(
+              onPressed: (){},
+              child: Icon(Icons.clear)
+          )
+
+        ],
+      );
+    }
+
+    else if(acceptedArray.contains(uid)){
+      return Icon(Icons.check);
+    }
+
+    else if(uMap['requestSent'].contains(list[index].get('id'))){
+      return Icon(Icons.send);
+    }
   }
 }
