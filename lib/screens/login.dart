@@ -88,6 +88,7 @@ class LoginScreenState extends State<LoginScreen> {
           currentUser = firebaseUser;
           await prefs?.setString('id', currentUser!.uid);
           await prefs?.setString('name', currentUser!.displayName ?? "");
+          await prefs?.setString('blocked', '[]');
 
         } else {
           DocumentSnapshot documentSnapshot = documents[0];
@@ -96,6 +97,7 @@ class LoginScreenState extends State<LoginScreen> {
           await prefs?.setString('id', userChat.id);
           await prefs?.setString('name', userChat.name);
           await prefs?.setString('aboutMe', userChat.aboutMe);
+          await prefs?.setString('blocked', '[]');
         }
         Fluttertoast.showToast(msg: "Sign in success");
         this.setState(() {
