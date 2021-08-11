@@ -45,12 +45,15 @@ class FireBaseFunction extends ChangeNotifier{
   }
 
   onBlockOrUnblock(uid,peerID,array,BuildContext context,blockedStatus) async{
+    print(blockedStatus);
+
     if(blockedStatus){
       array.remove(peerID);
     }
     else{
       array.add(peerID);
     }
+    print(array);
 
     FirebaseFirestore.instance.collection('users').doc(uid).update({'blocked': array});
     SharedPreferences pref = await SharedPreferences.getInstance();
@@ -68,9 +71,11 @@ class FireBaseFunction extends ChangeNotifier{
     FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
   }
 
-  acceptRequest(acceptArray,peerID,uid){
+  acceptRequest(acceptArray,requestArray,peerID,uid){
     acceptArray.add(peerID);
-    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestAccepted':acceptArray });
+    requestArray.remove(uid);
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestAccepted':acceptArray});
+    FirebaseFirestore.instance.collection('users').doc(peerID).update({'requestSent':requestArray});
   }
 
   denyRequest(requestArray,peerID,uid){

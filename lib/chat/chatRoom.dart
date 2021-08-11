@@ -19,7 +19,7 @@ class _ChatRoomState extends State<ChatRoom> {
   Map<bool,Widget> widgetMap={true:Icon(Icons.block),false:Icon(Icons.undo)};
 
   blockMechanism() async{
-    data['blockedByYou']= await Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['id'],data['peerID'], data['blocked'],context,blockedStatus);
+    data['blockedByYou']= await Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['id'],data['peerID'], data['blockedByYou'],context,data['blockedStatus']);
     data['blockedStatus']=!data['blockedStatus'];
 
   }
@@ -30,7 +30,7 @@ class _ChatRoomState extends State<ChatRoom> {
     data=data.isEmpty?ModalRoute.of(context)!.settings.arguments:data;
     Provider.of<FireBaseFunction>(context).blocked=data['blockedStatus'];
     blockedStatus=Provider.of<FireBaseFunction>(context).blocked;
-    print(data);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -110,58 +110,77 @@ class _ChatRoomState extends State<ChatRoom> {
                 print(blockedStatus);
 
               },
-              child: Icon(blockedStatus?Icons.undo:Icons.block)
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance.collection('users').where('id',isEqualTo: data['peerID']).snapshots(),
+                builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
+                  if(snapshot.hasData){
+                    print(snapshot.data!.docs[0].get('blocked'));
+                    data['blocked']=snapshot.data!.docs[0].get('blocked');
+                  }
+                  return Icon(blockedStatus?Icons.undo:Icons.block);
+                },
+              )
           )
         ],
       ),
 
       body: Stack(
     children: <Widget>[
-      Flexible(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('messages')
-                .doc(data['chatID'])
-                .collection(data['chatID'])
-                .orderBy('timestamp', descending: false)
-                .snapshots(),
-            builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
-              if (!snapshot.hasData) {
-                return Center(
-                    child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey)));
-              }
-              else{
-                messages=snapshot.data!.docs;
-                return  ListView.builder(
-                  itemCount: messages.length,
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(top: 10,bottom: 10),
-                  physics: NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index){
-                    return Container(
-                      padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
-                      child: Align(
-                        alignment: (messages[index].get('idFrom') == data['id']?Alignment.topRight:Alignment.topLeft),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)! ),
 
+      Column(
+        children: [
+          Flexible(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('messages')
+                    .doc(data['chatID'])
+                    .collection(data['chatID'])
+                    .orderBy('timestamp', descending: false)
+                    .snapshots(),
+                builder: (context,AsyncSnapshot<QuerySnapshot> snapshot){
+                  print(data);
+                  if (!snapshot.hasData) {
+                    return Center(
+                        child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey)));
+                  }
+                  else{
+                    messages=snapshot.data!.docs;
+                    return  ListView.builder(
+                      itemCount: messages.length,
+
+                      shrinkWrap: true,
+                      padding: EdgeInsets.only(top: 10,bottom: 10),
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index){
+                        return Container(
+                          padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
+                          child: Align(
+                            alignment: (messages[index].get('idFrom') == data['id']?Alignment.topRight:Alignment.topLeft),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)! ),
+
+                              ),
+                              padding: EdgeInsets.all(16),
+                              child: Text(messages[index].get('content'), style: TextStyle(
+                                  fontSize: 15,
+                                  color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)!
+                              ),),
+                            ),
                           ),
-                          padding: EdgeInsets.all(16),
-                          child: Text(messages[index].get('content'), style: TextStyle(
-                              fontSize: 15,
-                            color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)!
-                          ),),
-                        ),
-                      ),
+                        );
+                      },
                     );
-                  },
-                );
-              }
-            },
-          )
+                  }
+                },
+              )
+          ),
+
+        ],
       ),
+
+
 
     Align(
       alignment: Alignment.bottomLeft,
@@ -199,6 +218,7 @@ class _ChatRoomState extends State<ChatRoom> {
             SizedBox(width: 15,),
             FloatingActionButton(
               onPressed: () {
+                print(data['blocked']);
                 if(data['blocked'].contains(data['id'])){
                   Fluttertoast.showToast(msg: "You have been blocked by this contact");
                 }

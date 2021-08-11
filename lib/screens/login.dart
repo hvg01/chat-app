@@ -80,6 +80,7 @@ class LoginScreenState extends State<LoginScreen> {
             'id': firebaseUser.uid,
             'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
             'blocked':[],
+            'aboutMe':'XYZ',
             'requestSent':[],
             'requestAccepted':[]
           });

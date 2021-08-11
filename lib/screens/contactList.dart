@@ -18,46 +18,71 @@ class _ContactsState extends State<Contacts> {
   late dynamic id;
 
   Widget widgetDecision(requestArray,acceptedArray,uid,BuildContext context,index){
-    if(requestArray.contains(uid)){
-      print('Hello');
+    if(listOfSnapshots[index].get('requestSent').contains(userMap.get('id'))){
       return  Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          FlatButton(
-              onPressed: (){
-                Provider.of<FireBaseFunction>(context,listen: false).acceptRequest(userMap.get('requestAccepted'), listOfSnapshots[index].get('id'),id);
 
-              },
-              child: Icon(Icons.check)
-          ),
-          FlatButton(
-              onPressed: (){
-                Provider.of<FireBaseFunction>(context,listen: false).denyRequest(userMap.get('requestAccepted'), listOfSnapshots[index].get('id'),id);
-              },
-              child: Icon(Icons.clear)
-          )
+              FlatButton(
+                  onPressed: (){
+                    Provider.of<FireBaseFunction>(context,listen: false).acceptRequest(userMap.get('requestAccepted'),listOfSnapshots[index].get('requestSent') ,listOfSnapshots[index].get('id'),id);
+
+                  },
+                  minWidth: 50,
+
+                  child: Icon(Icons.check)
+              ),
+
+
+
+              FlatButton(
+                  onPressed: (){
+                    Provider.of<FireBaseFunction>(context,listen: false).denyRequest(userMap.get('requestAccepted'), listOfSnapshots[index].get('id'),id);
+                  },
+                  minWidth: 50,
+                  child: Icon(Icons.clear)
+              ),
+
+
+
+
 
         ],
       );
     }
 
-    else if(acceptedArray.contains(uid)){
+    else if(userMap.get('requestAccepted').contains(listOfSnapshots[index].get('id'))||listOfSnapshots[index].get('requestAccepted').contains(id)){
       print('Hi');
-      return Icon(Icons.check);
+      return Column(
+        children: [
+          Icon(Icons.check),
+          Text('Accepted')
+        ],
+      );
     }
 
     else if(userMap.get('requestSent').contains(listOfSnapshots[index].get('id'))){
-      print('Yola');
-      return Icon(Icons.send);
+
+      return Column(
+        children: [
+          Icon(Icons.send),
+          Text('Request sent')
+        ],
+      );
     }
 
-    print('Waddup');
 
-    return FlatButton(
-      onPressed: (){
-        Provider.of<FireBaseFunction>(context,listen: false).sendRequest(userMap.get('requestSent'),listOfSnapshots[index].get('id'),id);
-      },
-      child: Icon(Icons.add)
+    return
+        FlatButton(
+
+        onPressed: (){
+      Provider.of<FireBaseFunction>(context,listen: false).sendRequest(userMap.get('requestSent'),listOfSnapshots[index].get('id'),id);
+    },
+
+    child: Icon(Icons.add)
     );
+
+
 
   }
   @override
@@ -119,7 +144,7 @@ class _ContactsState extends State<Contacts> {
                               child: Text(
                                 listOfSnapshots[index].get('name'),
                                 style: TextStyle(
-                                    fontSize: 25
+                                    fontSize: 17
                                 ),
                               ),
                             ),
@@ -127,12 +152,12 @@ class _ContactsState extends State<Contacts> {
                               child: Text(
                                 listOfSnapshots[index].get('aboutMe'),
                                 style: TextStyle(
-                                    fontSize: 15
+                                    fontSize: 12
                                 ),
                               ),
                             ),
                             onTap: () async{
-                              if(listOfSnapshots[index].get('requestAccepted').contains(id)){
+                              if(listOfSnapshots[index].get('requestAccepted').contains(id) || userMap.get('requestAccepted').contains(listOfSnapshots[index].get('id')) ){
                                 SharedPreferences pref = await SharedPreferences.getInstance();
                                 List<dynamic> sortList= [pref.getString('id'),listOfSnapshots[index].id];
                                 sortList.sort();
@@ -144,8 +169,8 @@ class _ContactsState extends State<Contacts> {
                                   'peerID': listOfSnapshots[index].id,
                                   'name':listOfSnapshots[index].get('name'),
                                   'blocked':listOfSnapshots[index].get('blocked'),
-                                  'blockedByYou': json.decode(blockedByYou),
-                                  'blockedStatus':json.decode(blockedByYou).contains(listOfSnapshots[index].id),
+                                  'blockedByYou':userMap.get('blocked'),
+                                  'blockedStatus':userMap.get('blocked').contains(listOfSnapshots[index].get('id')),
                                   'aboutMe': listOfSnapshots[index].get('aboutMe')
                                 });
                               }
