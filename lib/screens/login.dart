@@ -79,7 +79,6 @@ class LoginScreenState extends State<LoginScreen> {
             'name': firebaseUser.displayName,
             'id': firebaseUser.uid,
             'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
-            'chattingWith': null,
             'blocked':[],
             'requestSent':[],
             'requestAccepted':[]

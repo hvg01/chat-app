@@ -12,6 +12,11 @@ class FireBaseFunction extends ChangeNotifier{
   get getBlockedStatus{
     return blocked;
   }
+
+  storedBlockedState() async{
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    return pref.getString('blockedStatus');
+  }
    onSendMessage(String content,String id, String peerId , TextEditingController textEditingController, String groupChatId) {
 
     if (content.trim() != '') {
@@ -39,15 +44,15 @@ class FireBaseFunction extends ChangeNotifier{
     }
   }
 
-  onBlockOrUnblock(id,array,BuildContext context,blockedStatus) async{
+  onBlockOrUnblock(uid,peerID,array,BuildContext context,blockedStatus) async{
     if(blockedStatus){
-      array.remove(id);
+      array.remove(peerID);
     }
     else{
-      array.add(id);
+      array.add(peerID);
     }
 
-    FirebaseFirestore.instance.collection('users').doc(id).update({'blocked': array});
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'blocked': array});
     SharedPreferences pref = await SharedPreferences.getInstance();
     pref.setString('blocked', json.encode(array));
     return array;
@@ -58,14 +63,19 @@ class FireBaseFunction extends ChangeNotifier{
     notifyListeners();
   }
 
-  sendRequest(requestArray,uid){
-    requestArray.add(uid);
+  sendRequest(requestArray,peerID,uid){
+    requestArray.add(peerID);
     FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
   }
 
-  acceptRequest(acceptArray,uid){
-    acceptArray.add(uid);
+  acceptRequest(acceptArray,peerID,uid){
+    acceptArray.add(peerID);
     FirebaseFirestore.instance.collection('users').doc(uid).update({'requestAccepted':acceptArray });
+  }
+
+  denyRequest(requestArray,peerID,uid){
+    requestArray.remove(peerID);
+    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
   }
 
   widgetDecider(requestArray,acceptedArray,uid,BuildContext context,index,uMap,list){

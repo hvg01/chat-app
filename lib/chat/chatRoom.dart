@@ -18,16 +18,18 @@ class _ChatRoomState extends State<ChatRoom> {
   late bool blockedStatus;
   Map<bool,Widget> widgetMap={true:Icon(Icons.block),false:Icon(Icons.undo)};
 
-  blockMechanism(){
-    data['blockedByYou']=Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['peerID'], data['blocked'],context,blockedStatus);
+  blockMechanism() async{
+    data['blockedByYou']= await Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['id'],data['peerID'], data['blocked'],context,blockedStatus);
+    data['blockedStatus']=!data['blockedStatus'];
 
   }
 
   @override
   Widget build(BuildContext context) {
-    blockedStatus=Provider.of<FireBaseFunction>(context).blocked;
+
     data=data.isEmpty?ModalRoute.of(context)!.settings.arguments:data;
-    //blockedStatus=data['blockedStatus'];
+    Provider.of<FireBaseFunction>(context).blocked=data['blockedStatus'];
+    blockedStatus=Provider.of<FireBaseFunction>(context).blocked;
     print(data);
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +75,7 @@ class _ChatRoomState extends State<ChatRoom> {
                     context: context,
                     builder: (context) {
                       return AlertDialog(
-                        title: Text('Are you sure you want to block this conversation ?'),
+                        title: Text('Are you sure you want to ${blockedStatus?'unblock':'block'} this conversation ?'),
                         content: Container(
                           width: 100,
                           height: 100,
@@ -81,9 +83,9 @@ class _ChatRoomState extends State<ChatRoom> {
                         
                         actions: [
                           FlatButton(
-                              onPressed: (){
+                              onPressed: () async{
 
-                                blockMechanism();
+                                await blockMechanism();
                                 Navigator.pop(context,!blockedStatus);
 
 
@@ -196,7 +198,7 @@ class _ChatRoomState extends State<ChatRoom> {
             ),
             SizedBox(width: 15,),
             FloatingActionButton(
-              onPressed: () async{
+              onPressed: () {
                 if(data['blocked'].contains(data['id'])){
                   Fluttertoast.showToast(msg: "You have been blocked by this contact");
                 }
@@ -206,7 +208,7 @@ class _ChatRoomState extends State<ChatRoom> {
                 }
 
                 else{
-                  Provider.of<FireBaseFunction>(context).onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
+                  Provider.of<FireBaseFunction>(context,listen: false).onSendMessage(textMessage.text, data['id'] , data['peerID'], textMessage, data['chatID']);
                 }
 
 
