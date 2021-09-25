@@ -17,7 +17,6 @@ class UserChat {
 
   factory UserChat.fromDocument(DocumentSnapshot doc) {
     String aboutMe = "";
-    String photoUrl = "";
     String nickname = "";
     try {
       aboutMe = doc.get('aboutMe');

@@ -1,11 +1,10 @@
 import 'package:chat_app/Firebase/firebaseFunction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
-import 'chatClass.dart';
+
 class ChatRoom extends StatefulWidget {
   @override
   _ChatRoomState createState() => _ChatRoomState();
@@ -21,8 +20,14 @@ class _ChatRoomState extends State<ChatRoom> {
   blockMechanism() async{
     data['blockedByYou']= await Provider.of<FireBaseFunction>(context,listen: false).onBlockOrUnblock(data['id'],data['peerID'], data['blockedByYou'],context,data['blockedStatus']);
     data['blockedStatus']=!data['blockedStatus'];
-
   }
+
+  
+  @override
+  void initState() {
+    super.initState();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +63,24 @@ class _ChatRoomState extends State<ChatRoom> {
                     children: <Widget>[
                       Text(data['name'],style: TextStyle( fontSize: 16 ,fontWeight: FontWeight.w600),),
                       SizedBox(height: 5,),
-                      Text(data['aboutMe'])
+                      Row(
+                        children: [
+                          Text(data['aboutMe']+" | "),
+                          StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance.collection("users").doc(data['peerID']).snapshots(),
+                            builder: (context, snapshot){
+                              if(snapshot.data !=null){                                
+                                return Text(
+                                  "${snapshot.data!.get('status')}"
+                                );
+                              }
+                              else return Text(
+                                "offline"
+                              );
+                          })
+                          
+                        ],
+                      )
 
                     ],
                   ),
@@ -68,9 +90,8 @@ class _ChatRoomState extends State<ChatRoom> {
           ),
         ),
         actions: [
-          FlatButton(
+          TextButton(
               onPressed: ()async{
-
                 bool x= await showDialog(
                     context: context,
                     builder: (context) {
@@ -79,28 +100,21 @@ class _ChatRoomState extends State<ChatRoom> {
                         content: Container(
                           width: 100,
                           height: 100,
-                        ),
-                        
+                        ),                        
                         actions: [
-                          FlatButton(
+                          TextButton(
                               onPressed: () async{
-
                                 await blockMechanism();
                                 Navigator.pop(context,!blockedStatus);
-
-
                               }, 
                               child: Text('Yes')
                           ),
-                          FlatButton(
+                          TextButton(
                               onPressed: (){
-                                Navigator.pop(context,blockedStatus);
-                              },
+                                Navigator.pop(context,blockedStatus);                              
+                                },
                               child: Text('No'))
                         ],
-
-
-
                       );
                     });
                 print(x);
@@ -145,6 +159,7 @@ class _ChatRoomState extends State<ChatRoom> {
                   }
                   else{
                     messages=snapshot.data!.docs;
+                    Provider.of<FireBaseFunction>(context,listen: false).markRead(data['peerID'], data['chatID']);
                     return  ListView.builder(
                       itemCount: messages.length,
 
@@ -153,20 +168,40 @@ class _ChatRoomState extends State<ChatRoom> {
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index){
                         return Container(
-                          padding: EdgeInsets.only(left: 14,right: 14,top: 10,bottom: 10),
+                          padding: EdgeInsets.only(left: 15,right: 15,top: 5,bottom: 5),
                           child: Align(
                             alignment: (messages[index].get('idFrom') == data['id']?Alignment.topRight:Alignment.topLeft),
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)! ),
-
+                                borderRadius: messages[index].get('idFrom')== data['id'] ? 
+                                                BorderRadius.only(topLeft: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20))
+                                              : BorderRadius.only(topRight: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                                
+                                border: Border.all(color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)),
                               ),
-                              padding: EdgeInsets.all(16),
-                              child: Text(messages[index].get('content'), style: TextStyle(
-                                  fontSize: 15,
-                                  color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)!
-                              ),),
+                              padding: EdgeInsets.all(10),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(                                
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        child: Text(messages[index].get('content'), style: TextStyle(
+                                            fontSize: 15,
+                                            color: (messages[index].get('idFrom')== data['id']?Colors.black:Colors.green)
+                                        ),),
+                                      ),
+                                    
+                                  ),
+                                  messages[index].get('idFrom')== data['id']?
+                                  Icon(Icons.done_all, 
+                                    size: 16,
+                                    color: messages[index].get('read')==true?Colors.blue: Colors.black,
+                                  )
+                                  :SizedBox()
+                                ],
+                              ),
                             ),
                           ),
                         );

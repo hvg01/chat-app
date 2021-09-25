@@ -81,8 +81,9 @@ class LoginScreenState extends State<LoginScreen> {
             'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
             'blocked':[],
             'aboutMe':'XYZ',
-            'requestSent':[],
-            'requestAccepted':[]
+            'requestSent':[],            
+            'requestAccepted':[],
+            'status' : 'Online'
           });
 
           // Write data to local

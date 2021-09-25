@@ -36,11 +36,10 @@ class FireBaseFunction extends ChangeNotifier{
             'idTo': peerId,
             'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
             'content': content,
-
+            'read' : false
           },
         );
       });
-
     }
   }
 
@@ -83,17 +82,32 @@ class FireBaseFunction extends ChangeNotifier{
     FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
   }
 
+
+  Future<void> markRead(String peerID, String chatID) async {
+    final query = await FirebaseFirestore.instance
+                        .collection('messages')
+                        .doc(chatID)
+                        .collection(chatID)
+                        .where('idFrom', isEqualTo: peerID)
+                        .where('read', isEqualTo: false)
+                        .get();
+   
+    query.docs.forEach((doc){
+      doc.reference.update({'read' : true});
+    });    
+  }
+
   widgetDecider(requestArray,acceptedArray,uid,BuildContext context,index,uMap,list){
     if(requestArray.contains(uid)){
       return Row(
         children: [
-          FlatButton(
+          TextButton(
               onPressed: (){
 
               },
               child: Icon(Icons.check)
           ),
-          FlatButton(
+          TextButton(
               onPressed: (){},
               child: Icon(Icons.clear)
           )

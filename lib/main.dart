@@ -11,12 +11,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // ignore: unused_local_variable
   SharedPreferences preferences = await SharedPreferences.getInstance();
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: FireBaseFunction())
     ],
     child:MaterialApp(
+        debugShowCheckedModeBanner : false,
         initialRoute: '/login',
         routes:{
           '/home':(context)=>Contacts(),

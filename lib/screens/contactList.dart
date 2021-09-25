@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:chat_app/Firebase/firebaseFunction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+
 class Contacts extends StatefulWidget {
   @override
   _ContactsState createState() => _ContactsState();
 }
 
-class _ContactsState extends State<Contacts> {
+class _ContactsState extends State<Contacts> with WidgetsBindingObserver{
   dynamic listOfSnapshots;
   dynamic userMap;
   late dynamic id;
@@ -22,19 +22,16 @@ class _ContactsState extends State<Contacts> {
       return  Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-
+              // ignore: deprecated_member_use
               FlatButton(
                   onPressed: (){
                     Provider.of<FireBaseFunction>(context,listen: false).acceptRequest(userMap.get('requestAccepted'),listOfSnapshots[index].get('requestSent') ,listOfSnapshots[index].get('id'),id);
-
                   },
                   minWidth: 50,
-
                   child: Icon(Icons.check)
               ),
 
-
-
+              // ignore: deprecated_member_use
               FlatButton(
                   onPressed: (){
                     Provider.of<FireBaseFunction>(context,listen: false).denyRequest(userMap.get('requestAccepted'), listOfSnapshots[index].get('id'),id);
@@ -42,11 +39,6 @@ class _ContactsState extends State<Contacts> {
                   minWidth: 50,
                   child: Icon(Icons.clear)
               ),
-
-
-
-
-
         ],
       );
     }
@@ -60,9 +52,7 @@ class _ContactsState extends State<Contacts> {
         ],
       );
     }
-
     else if(userMap.get('requestSent').contains(listOfSnapshots[index].get('id'))){
-
       return Column(
         children: [
           Icon(Icons.send),
@@ -71,20 +61,41 @@ class _ContactsState extends State<Contacts> {
       );
     }
 
-
     return
-        FlatButton(
-
+        TextButton(
         onPressed: (){
       Provider.of<FireBaseFunction>(context,listen: false).sendRequest(userMap.get('requestSent'),listOfSnapshots[index].get('id'),id);
     },
-
     child: Icon(Icons.add)
     );
-
-
-
   }
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addObserver(this);
+    setStatus("Online");
+  }
+
+  void setStatus(String status) async {
+    await FirebaseFirestore.instance.collection('users').doc(userMap.get('id')).update({
+      'status' : "$status"
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    if(state == AppLifecycleState.resumed){
+      //online
+      setStatus("Online");
+    }
+    else{
+      //offline
+      setStatus("Offline");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     id='';
@@ -162,6 +173,7 @@ class _ContactsState extends State<Contacts> {
                                 List<dynamic> sortList= [pref.getString('id'),listOfSnapshots[index].id];
                                 sortList.sort();
                                 dynamic finalString=sortList[0]+sortList[1];
+                                // ignore: unused_local_variable
                                 dynamic blockedByYou= pref.getString('blocked');
                                 Navigator.pushNamed(context, '/chatRoom',arguments: {
                                   'chatID':finalString,
