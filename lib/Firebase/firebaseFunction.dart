@@ -5,20 +5,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class FireBaseFunction extends ChangeNotifier{
-   bool blocked=false;
-   Widget widget=Container();
+class FireBaseFunction extends ChangeNotifier {
+  bool blocked = false;
+  Widget widget = Container();
 
-  get getBlockedStatus{
+  get getBlockedStatus {
     return blocked;
   }
 
-  storedBlockedState() async{
+  storedBlockedState() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     return pref.getString('blockedStatus');
   }
-   onSendMessage(String content,String id, String peerId , TextEditingController textEditingController, String groupChatId) {
 
+  sendMessage(String content, String id, String peerId,
+      TextEditingController textEditingController, String groupChatId) {
     if (content.trim() != '') {
       textEditingController.clear();
 
@@ -36,91 +37,93 @@ class FireBaseFunction extends ChangeNotifier{
             'idTo': peerId,
             'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
             'content': content,
-            'read' : false
+            'read': false
           },
         );
       });
     }
   }
 
-  onBlockOrUnblock(uid,peerID,array,BuildContext context,blockedStatus) async{
+  blockOrUnblock(
+      uid, peerID, array, BuildContext context, blockedStatus) async {
     print(blockedStatus);
 
-    if(blockedStatus){
+    if (blockedStatus as bool) {
       array.remove(peerID);
-    }
-    else{
+    } else {
       array.add(peerID);
     }
     print(array);
 
-    FirebaseFirestore.instance.collection('users').doc(uid).update({'blocked': array});
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid as String)
+        .update({'blocked': array});
     SharedPreferences pref = await SharedPreferences.getInstance();
     pref.setString('blocked', json.encode(array));
     return array;
   }
 
-  getCurrentBlockedStatus(bool status){
-    blocked=status;
+  getCurrentBlockedStatus(bool status) {
+    blocked = status;
     notifyListeners();
   }
 
-  sendRequest(requestArray,peerID,uid){
+  sendRequest(requestArray, peerID, uid) {
     requestArray.add(peerID);
-    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc('$uid')
+        .update({'requestSent': requestArray});
   }
 
-  acceptRequest(acceptArray,requestArray,peerID,uid){
+  acceptRequest(acceptArray, requestArray, peerID, uid) {
     acceptArray.add(peerID);
     requestArray.remove(uid);
-    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestAccepted':acceptArray});
-    FirebaseFirestore.instance.collection('users').doc(peerID).update({'requestSent':requestArray});
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid as String)
+        .update({'requestAccepted': acceptArray});
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(peerID as String)
+        .update({'requestSent': requestArray});
   }
 
-  denyRequest(requestArray,peerID,uid){
+  denyRequest(requestArray, peerID, uid) {
     requestArray.remove(peerID);
-    FirebaseFirestore.instance.collection('users').doc(uid).update({'requestSent':requestArray });
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid as String)
+        .update({'requestSent': requestArray});
   }
-
 
   Future<void> markRead(String peerID, String chatID) async {
     final query = await FirebaseFirestore.instance
-                        .collection('messages')
-                        .doc(chatID)
-                        .collection(chatID)
-                        .where('idFrom', isEqualTo: peerID)
-                        .where('read', isEqualTo: false)
-                        .get();
-   
-    query.docs.forEach((doc){
-      doc.reference.update({'read' : true});
-    });    
+        .collection('messages')
+        .doc(chatID)
+        .collection(chatID)
+        .where('idFrom', isEqualTo: peerID)
+        .where('read', isEqualTo: false)
+        .get();
+
+    query.docs.forEach((doc) {
+      doc.reference.update({'read': true});
+    });
   }
 
-  widgetDecider(requestArray,acceptedArray,uid,BuildContext context,index,uMap,list){
-    if(requestArray.contains(uid)){
+  widgetDecider(requestArray, acceptedArray, uid, BuildContext context, index,
+      uMap, list) {
+    if (requestArray.contains(uid) as bool) {
       return Row(
         children: [
-          TextButton(
-              onPressed: (){
-
-              },
-              child: Icon(Icons.check)
-          ),
-          TextButton(
-              onPressed: (){},
-              child: Icon(Icons.clear)
-          )
-
+          TextButton(onPressed: () {}, child: Icon(Icons.check)),
+          TextButton(onPressed: () {}, child: Icon(Icons.clear))
         ],
       );
-    }
-
-    else if(acceptedArray.contains(uid)){
+    } else if (acceptedArray.contains(uid) as bool) {
       return Icon(Icons.check);
-    }
-
-    else if(uMap['requestSent'].contains(list[index].get('id'))){
+    } else if (uMap['requestSent'].contains(list[index].get('id')) as bool) {
       return Icon(Icons.send);
     }
   }

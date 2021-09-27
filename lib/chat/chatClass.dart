@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Chat{
+class Chat {
   late int id;
   late String type;
   late String content;
 
-  Chat({required this.id,required this.type,required this.content});
+  Chat({required this.id, required this.type, required this.content});
 }
 
 class UserChat {
@@ -13,17 +13,17 @@ class UserChat {
   String aboutMe;
   String name;
 
-  UserChat({required this.id,  required this.name, required this.aboutMe});
+  UserChat({required this.id, required this.name, required this.aboutMe});
 
   factory UserChat.fromDocument(DocumentSnapshot doc) {
     String aboutMe = "";
     String nickname = "";
     try {
-      aboutMe = doc.get('aboutMe');
+      aboutMe = doc.get('aboutMe') as String;
     } catch (e) {}
 
     try {
-      nickname = doc.get('name');
+      nickname = doc.get('name') as String;
     } catch (e) {}
     return UserChat(
       id: doc.id,

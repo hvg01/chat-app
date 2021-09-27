@@ -42,8 +42,8 @@ class LoginScreenState extends State<LoginScreen> {
 
     isLoggedIn = await googleSignIn.isSignedIn();
     if (isLoggedIn && prefs?.getString('id') != null) {
-
-      Navigator.pushReplacementNamed(context, '/home',arguments: prefs!.getString('id'));
+      Navigator.pushReplacementNamed(context, '/home',
+          arguments: prefs!.getString('id'));
     }
 
     this.setState(() {
@@ -66,24 +66,30 @@ class LoginScreenState extends State<LoginScreen> {
         idToken: googleAuth.idToken,
       );
 
-      User? firebaseUser = (await firebaseAuth.signInWithCredential(credential)).user;
+      User? firebaseUser =
+          (await firebaseAuth.signInWithCredential(credential)).user;
 
       if (firebaseUser != null) {
         // Check is already sign up
-        final QuerySnapshot result =
-        await FirebaseFirestore.instance.collection('users').where('id', isEqualTo: firebaseUser.uid).get();
+        final QuerySnapshot result = await FirebaseFirestore.instance
+            .collection('users')
+            .where('id', isEqualTo: firebaseUser.uid)
+            .get();
         final List<DocumentSnapshot> documents = result.docs;
         if (documents.length == 0) {
           // Update data to server if new user
-          FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).set({
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(firebaseUser.uid)
+              .set({
             'name': firebaseUser.displayName,
             'id': firebaseUser.uid,
             'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
-            'blocked':[],
-            'aboutMe':'XYZ',
-            'requestSent':[],            
-            'requestAccepted':[],
-            'status' : 'Online'
+            'blocked': [],
+            'aboutMe': 'XYZ',
+            'requestSent': [],
+            'requestAccepted': [],
+            'status': 'Online'
           });
 
           // Write data to local
@@ -91,7 +97,6 @@ class LoginScreenState extends State<LoginScreen> {
           await prefs?.setString('id', currentUser!.uid);
           await prefs?.setString('name', currentUser!.displayName ?? "");
           await prefs?.setString('blocked', '[]');
-
         } else {
           DocumentSnapshot documentSnapshot = documents[0];
           UserChat userChat = UserChat.fromDocument(documentSnapshot);
@@ -106,7 +111,8 @@ class LoginScreenState extends State<LoginScreen> {
           isLoading = false;
         });
 
-        Navigator.pushReplacementNamed(context, '/home',arguments: currentUser!.uid);
+        Navigator.pushReplacementNamed(context, '/home',
+            arguments: currentUser!.uid);
       } else {
         Fluttertoast.showToast(msg: "Sign in fail");
         this.setState(() {
@@ -146,13 +152,19 @@ class LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
                 style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xffdd4b39)),
-                    padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 15.0))),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Color(0xffdd4b39)),
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                        EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 15.0))),
               ),
             ),
             // Loading
             Positioned(
-              child: isLoading ? Center(child: CircularProgressIndicator(),):Container(),
+              child: isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Container(),
             ),
           ],
         ));
