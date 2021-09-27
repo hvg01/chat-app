@@ -1,4 +1,5 @@
 import 'package:chat_app/Firebase/firebaseFunction.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,9 +8,9 @@ class DatabaseServices {
   DatabaseServices(this.context);
 
   onSendMessage(String content, String id, String peerId,
-      TextEditingController textEditingController, String groupChatId) {
+      TextEditingController textEditingController, CollectionReference messageCollection) {
     Provider.of<FireBaseFunction>(context, listen: false)
-        .sendMessage(content, id, peerId, textEditingController, groupChatId);
+        .sendMessage(content, id, peerId, textEditingController, messageCollection);
   }
 
   onBlockOrUnblock(
@@ -33,9 +34,9 @@ class DatabaseServices {
         .denyRequest(requestArray, peerID, uid);
   }
 
-  markRead(String peerID, String chatID) {
+  markRead(String peerID, CollectionReference messageCollection) {
     Provider.of<FireBaseFunction>(context, listen: false)
-        .markRead(peerID, chatID);
+        .markRead(peerID, messageCollection);
   }
 
   blocked(bool blockedStatus) {

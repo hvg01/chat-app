@@ -1,4 +1,5 @@
 import 'package:chat_app/Firebase/database.dart';
+import 'package:chat_app/chat/repliesRoom.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -177,7 +178,11 @@ class _ChatRoomState extends State<ChatRoom> {
                   } else {
                     messages = snapshot.data!.docs;
                     DatabaseServices(context).markRead(
-                        data['peerID'] as String, data['chatID'] as String);
+                        data['peerID'] as String,
+                        FirebaseFirestore.instance
+                            .collection('messages')
+                            .doc(data['chatID'] as String)
+                            .collection(data['chatID'] as String));
                     return ListView.builder(
                       itemCount: messages.length as int,
                       shrinkWrap: true,
@@ -192,57 +197,69 @@ class _ChatRoomState extends State<ChatRoom> {
                                 (messages[index].get('idFrom') == data['id']
                                     ? Alignment.topRight
                                     : Alignment.topLeft),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    messages[index].get('idFrom') == data['id']
-                                        ? BorderRadius.only(
-                                            topLeft: Radius.circular(20),
-                                            bottomLeft: Radius.circular(20),
-                                            bottomRight: Radius.circular(20))
-                                        : BorderRadius.only(
-                                            topRight: Radius.circular(20),
-                                            bottomLeft: Radius.circular(20),
-                                            bottomRight: Radius.circular(20)),
-                                border: Border.all(
-                                    color: (messages[index].get('idFrom') ==
-                                            data['id']
-                                        ? Colors.black
-                                        : Colors.green)),
-                              ),
-                              padding: EdgeInsets.all(10),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8),
-                                      child: Text(
-                                        messages[index].get('content')
-                                            as String,
-                                        style: TextStyle(
-                                            fontSize: 15,
-                                            color: (messages[index]
-                                                        .get('idFrom') ==
-                                                    data['id']
-                                                ? Colors.black
-                                                : Colors.green)),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (_) => RepliesRoom(
+                                        messages[index],
+                                        data['chatID'] as String,
+                                        data['peerID'] as String,
+                                        data['id'] as String,
+                                        data['blockedStatus'] as bool)));
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: messages[index].get('idFrom') ==
+                                          data['id']
+                                      ? BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(20))
+                                      : BorderRadius.only(
+                                          topRight: Radius.circular(20),
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(20)),
+                                  border: Border.all(
+                                      color: (messages[index].get('idFrom') ==
+                                              data['id']
+                                          ? Colors.black
+                                          : Colors.green)),
+                                ),
+                                padding: EdgeInsets.all(10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8),
+                                        child: Text(
+                                          messages[index].get('content')
+                                              as String,
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: (messages[index]
+                                                          .get('idFrom') ==
+                                                      data['id']
+                                                  ? Colors.black
+                                                  : Colors.green)),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  messages[index].get('idFrom') == data['id']
-                                      ? Icon(
-                                          Icons.done_all,
-                                          size: 16,
-                                          color: messages[index].get('read') ==
-                                                  true
-                                              ? Colors.blue
-                                              : Colors.black,
-                                        )
-                                      : SizedBox()
-                                ],
+                                    messages[index].get('idFrom') == data['id']
+                                        ? Icon(
+                                            Icons.done_all,
+                                            size: 16,
+                                            color:
+                                                messages[index].get('read') ==
+                                                        true
+                                                    ? Colors.blue
+                                                    : Colors.black,
+                                          )
+                                        : SizedBox()
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -299,7 +316,7 @@ class _ChatRoomState extends State<ChatRoom> {
                       print(data['blocked']);
                       if ('${data['blocked']}'.contains('${data['id']}')) {
                         Fluttertoast.showToast(
-                            msg: "You have been blocked by this contact");
+                            msg: "Messaging has been blocked");
                       } else if ('${data['blockedByYou']}'
                           .contains('${data['peerID']}')) {
                         Fluttertoast.showToast(
@@ -310,7 +327,10 @@ class _ChatRoomState extends State<ChatRoom> {
                             data['id'] as String,
                             data['peerID'] as String,
                             textMessage,
-                            data['chatID'] as String);
+                            FirebaseFirestore.instance
+                                .collection('messages')
+                                .doc(data['chatID'] as String)
+                                .collection(data['chatID'] as String));
                       }
                     },
                     child: Icon(

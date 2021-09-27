@@ -19,15 +19,13 @@ class FireBaseFunction extends ChangeNotifier {
   }
 
   sendMessage(String content, String id, String peerId,
-      TextEditingController textEditingController, String groupChatId) {
+      TextEditingController textEditingController, CollectionReference messageCollection) {
     if (content.trim() != '') {
       textEditingController.clear();
+      var timestamp = DateTime.now().millisecondsSinceEpoch.toString();
 
-      var documentReference = FirebaseFirestore.instance
-          .collection('messages')
-          .doc(groupChatId)
-          .collection(groupChatId)
-          .doc(DateTime.now().millisecondsSinceEpoch.toString());
+      var documentReference = messageCollection
+          .doc(timestamp);
 
       FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(
@@ -35,7 +33,7 @@ class FireBaseFunction extends ChangeNotifier {
           {
             'idFrom': id,
             'idTo': peerId,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+            'timestamp': timestamp,
             'content': content,
             'read': false
           },
@@ -98,11 +96,8 @@ class FireBaseFunction extends ChangeNotifier {
         .update({'requestSent': requestArray});
   }
 
-  Future<void> markRead(String peerID, String chatID) async {
-    final query = await FirebaseFirestore.instance
-        .collection('messages')
-        .doc(chatID)
-        .collection(chatID)
+  Future<void> markRead(String peerID, CollectionReference messageCollection) async {
+    final query = await messageCollection
         .where('idFrom', isEqualTo: peerID)
         .where('read', isEqualTo: false)
         .get();
